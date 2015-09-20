@@ -19,3 +19,6 @@ hs_err_pid*
 windows-service/installer32.nsi
 windows-service/*.exe
 
+.gradle
+build
+
