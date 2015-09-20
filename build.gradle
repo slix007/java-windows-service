@@ -1,0 +1,91 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+
+version = '0.1.0'
+
+jar {
+    baseName = 'gs-spring-boot'    
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    // tag::actuator[]
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    // end::actuator[]
+    // tag::tests[]
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    // end::tests[]
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
+
+task copyJar << {
+    copy {
+        def serverFileName = 'gs-spring-boot-' + version + '.jar'
+        println 'Copy ' + serverFileName + ' into installer directory.'
+
+        from 'build/libs/' + serverFileName
+        into 'windows-service/server/'
+
+        // Use a closure to map the file name
+        rename { String fileName ->
+            fileName.replace(serverFileName, 'server.jar')
+        }
+        rename serverFileName, ''
+    }
+}
+
+// Next steps need NSIS. Check your path to makensisw.exe.
+def pathToMakeNsisW = 'd:\\Program Files (x86)\\NSIS\\makensisw.exe'
+
+task createExeFile64(type:Exec) {
+    workingDir './windows-service/'
+    commandLine pathToMakeNsisW
+    args 'installer.nsi'
+}
+
+task createExeFile32(type:Exec) {
+    // Create new nsi file for 32-bit platform
+    String contents = new File( './windows-service/installer.nsi' ).getText( 'UTF-8' ) 
+    contents = contents.replace( '!define WIN win64', '#!define WIN win64' )
+    contents = contents.replace( '#!define WIN win32', '!define WIN win32' )
+    def tmpFile = new File('./windows-service/installer32.nsi')
+    tmpFile.write( contents, 'UTF-8' )
+    tmpFile.deleteOnExit()
+
+    workingDir './windows-service/'
+    commandLine pathToMakeNsisW
+    args 'installer32.nsi'
+}
+
+task buildInstallers << {
+    //double check to delete tmpFile
+    def tmpFile = new File('./windows-service/installer32.nsi')
+    tmpFile.delete()
+
+    println 'Installers created.'
+}
+
+buildInstallers.dependsOn {
+    tasks.findAll { task -> task.name.startsWith('createExeFile') }
+}

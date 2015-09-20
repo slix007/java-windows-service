@@ -10,3 +10,12 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# IntelliJ Idea files
+.idea
+*.iml
+
+# Some spesial project files
+windows-service/installer32.nsi
+windows-service/*.exe
+
