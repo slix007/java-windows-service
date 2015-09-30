@@ -15,7 +15,7 @@ apply plugin: 'spring-boot'
 version = '0.1.0'
 
 jar {
-    baseName = 'gs-spring-boot'    
+    baseName = 'java-windows-service'
 }
 
 repositories {
@@ -41,7 +41,7 @@ task wrapper(type: Wrapper) {
 
 task copyJar << {
     copy {
-        def serverFileName = 'gs-spring-boot-' + version + '.jar'
+        def serverFileName = 'java-windows-service-' + version + '.jar'
         println 'Copy ' + serverFileName + ' into installer directory.'
 
         from 'build/libs/' + serverFileName
@@ -56,11 +56,11 @@ task copyJar << {
 }
 
 // Next steps need NSIS. Check your path to makensisw.exe.
-def pathToMakeNsisW = 'd:\\Program Files (x86)\\NSIS\\makensisw.exe'
+def pathToMakeNsis = 'd:\\Program Files (x86)\\NSIS\\makensis.exe'
 
 task createExeFile64(type:Exec) {
     workingDir './windows-service/'
-    commandLine pathToMakeNsisW
+    commandLine pathToMakeNsis
     args 'installer.nsi'
 }
 
@@ -74,7 +74,7 @@ task createExeFile32(type:Exec) {
     tmpFile.deleteOnExit()
 
     workingDir './windows-service/'
-    commandLine pathToMakeNsisW
+    commandLine pathToMakeNsis
     args 'installer32.nsi'
 }
 
